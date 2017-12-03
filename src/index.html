@@ -15,12 +15,32 @@
             margin: 0;
             padding: 0;
         }
+        #container {
+          position: relative;
+          width: 800;
+          height: 400;
+        }
+        .ui-el {
+          position: absolute;
+          cursor: pointer;
+        }
+        #ui-slider {
+          top: 12em;
+          left: 47.5em;
+          height: 2em;
+          width: 2em;
+          background-color: blue;
+        }
+
     </style>
 </head>
 
 <body>
 
-    <div id="content"></div>
+    <div id="container">
+      <div class="ui-el" id="ui-slider"></div>
+      <div id="content"></div>
+    </div>
     <!-- uncomment the line bellow for cordova feature -->
     <!-- <script type="text/javascript" src="cordova.js"></script> -->
 </body>

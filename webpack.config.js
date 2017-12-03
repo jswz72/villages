@@ -55,6 +55,10 @@ module.exports = {
       server: {
         baseDir: ['./', './build']
       }
+    }),
+    new webpack.ProvidePlugin({
+      $: 'jquery',
+      jQuery: 'jquery'
     })
   ],
   module: {
