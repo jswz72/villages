@@ -1,29 +1,37 @@
 import Phaser from 'phaser';
 
 export default class Board {
-  constructor (width, height, gridSizeX, gridSizeY, game, scale = 1) {
-    
-    this.game = game;
-    console.log(this.game);
-    
-    this.tileOptions = ['dirt','sand','grass','dirtMountain', 'sandMountain', 'grassMountain', 'dirtForest', 'sandForest', 'grassForest'];
+  constructor (width, height, gridSizeX, gridSizeY, tileOptions, scale) {
+    console.log(width);
+    this.tileOptions = tileOptions;
+    this.gridSizeX = gridSizeX;
+    this.gridSizeY = gridSizeY;
+    this.initHexWidth = width;
+    this.initHexHeight = height;
     this.gameTileState = [];
     this.reScale(scale);
-    this.hexGroup = this.game.add.group();
-    this.drawTiles();
+    this.generateTiles();
   }
 
   reScale (scaleFactor) {
-    this.hexHeight = this.initialHexHeight * this.scaleFactor;
-    this.hexWidth = this.initialHexWidth * this.scaleFactor;
-    this.hexWidth += (1 * this.scaleFactor);
+    this.scaleFactor = scaleFactor;
+    this.hexHeight = this.initHexHeight * scaleFactor;
+    this.hexWidth = this.initHexWidth * scaleFactor;
+    this.hexWidth += (1 * scaleFactor);
     this.firstPosition = {
       x: (0 + this.hexWidth / 2),
       y: (0 + this.hexHeight / 3)
     };
+    if (this.gameTileState.length > 0) {
+      this.gameTileState.forEach(tile => {
+        if (tile) {
+          tile.scale = scaleFactor;
+        }
+      });
+    }
   }
 
-  drawTiles () {
+  generateTiles () {
     if (this.gameTileState.length === 0) {
       for (let i = 0; i < this.gridSizeY; i++) {
         for (let j = 0; j < this.gridSizeX; j++) {
@@ -31,35 +39,29 @@ export default class Board {
           let yPosition = this.firstPosition.y + (this.hexHeight* i);
           if (i % 2 == 0) {
             let tileType = this.tileOptions[Math.floor(Math.random()*(this.tileOptions.length ))];
-            this.gameTileState.push(tileType);
-            let tile = this.game.add.sprite(xPosition, yPosition, tileType);
-            tile.scale.setTo(this.scaleFactor, this.scaleFactor);
-            this.hexGroup.add(tile);
+            let tile = {type: tileType, x: xPosition, y: yPosition, scale: this.scaleFactor };
+            this.gameTileState.push(tile);
           } else if (j != 0) {
             let tileType = this.tileOptions[Math.floor(Math.random()*(this.tileOptions.length ))];
-            this.gameTileState.push(tileType);
-            let tile = this.game.add.sprite(xPosition - (0.5 * this.hexWidth), yPosition, tileType);
-            tile.scale.setTo(this.scaleFactor, this.scaleFactor);
-            this.hexGroup.add(tile);
+            let tile = {type: tileType, x: xPosition - (0.5 * this.hexWidth), y: yPosition, scale: this.scaleFactor };
+            this.gameTileState.push(tile);
           } else {
-            this.gameTileState.push('');
+            this.gameTileState.push(null);
           }
         }
       }
     } else {
-      this.hexGroup.removeAll();
       for (let i = 0, counter = 0; i < this.gridSizeY; i++) {
         for (let j = 0; j < this.gridSizeX; j++, counter++) {
           let xPosition = this.firstPosition.x + (this.hexWidth * j);
           let yPosition = this.firstPosition.y + (this.hexHeight* i);
           if (i % 2 == 0) {
-            let tile = this.game.add.sprite(xPosition, yPosition, this.gameTileState[counter]);
-            tile.scale.setTo(this.scaleFactor, this.scaleFactor);
-            this.hexGroup.add(tile);
+            this.gameTileState[counter].x = xPosition;
+            this.gameTileState[counter].y = yPosition;
           } else if (j != 0) {
-            let tile = this.game.add.sprite(xPosition - (0.5 * this.hexWidth), yPosition, this.gameTileState[counter]);
-            tile.scale.setTo(this.scaleFactor, this.scaleFactor);
-            this.hexGroup.add(tile);
+            this.gameTileState[counter].x = xPosition - (0.5 * this.hexWidth)
+            this.gameTileState[counter].y = yPosition;
+            this.gameTileState[counter].scale = this.scaleFactor;
           }
         }
       }
