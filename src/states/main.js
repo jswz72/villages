@@ -42,13 +42,16 @@ export default class Main extends Phaser.State {
     this.load.image('sandMountain', 'assets/images/sandMountain_1.png');
     this.tileOptions.push('sandMountain');
     this.load.image('slider', 'assets/images/mushroom2.png');
+
+    this.load.image('dot', 'assets/images/dot.png');
   }
 
   create () {
-    this.physics.startSystem(Phaser.Physics.ARCADE);
+    this.game.world.setBounds(0,0, 1400, 1400);
     this.hexGroup = this.game.add.group();
     this.board = new Board(this.initHexWidth, this.initHexHeight, this.gridSizeX, this.gridSizeY, this.tileOptions, 1);
     this.drawBoard();
+
     this.slider = this.game.add.sprite(this.game.world.width - 50, this.game.world.height / 2, 'slider');
     this.slider.enableBody = true;
     this.slider.inputEnabled = true;
@@ -57,6 +60,17 @@ export default class Main extends Phaser.State {
     this.slider.input.setDragLock(false, true);
     this.game.physics.enable(this.slider);
     this.slider.scale.setTo(0.5, 0.5);
+
+    let playerStartingPos = {
+      x: this.board.firstPosition.x + (this.board.hexWidth / 2) * (Math.random() * this.board.gridSizeX),
+      y: this.board.firstPosition.y + (this.board.hexHeight / 2) * (Math.random() * this.board.gridSizeY)
+    }
+    this.player = this.game.add.sprite(this.game.world.width / 2, this.game.world.height / 2, 'dot');
+    this.player.enableBody = true;
+    this.player.scale.setTo(0.2, 0.2);
+    this.cursors = game.input.keyboard.createCursorKeys();
+    this.game.camera.follow(this.player);
+    this.game.camera.follow(this.player, Phaser.Camera.FOLLOW_TOPDOWN_TIGHT);
   }
 
   update () {
@@ -68,5 +82,24 @@ export default class Main extends Phaser.State {
       this.board.generateTiles();
       this.drawBoard();
     }
+
+    
+        if (this.cursors.up.isDown)
+        {
+            this.player.y += 10;
+        }
+        else if (this.cursors.down.isDown)
+        {
+            this.player.y  += -10;
+        }
+    
+        if (this.cursors.left.isDown)
+        {
+            this.player.x += -10;
+        }
+        else if (this.cursors.right.isDown)
+        {
+            this.player.x +=10
+        }
   }
 }
