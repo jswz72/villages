@@ -1,94 +1,54 @@
 import Phaser from 'phaser';
+import Board from '../board.js'
 
 export default class Main extends Phaser.State {
   constructor () {
     super();
-    this.initialHexWidth = 122;
-    this.initialHexHeight = 108;
+    this.initHexWidth = 122;
+    this.initHexHeight = 108;
     this.gridSizeX = 20;
     this.gridSizeY = 15;
-    this.columns = [Math.ceil(this.gridSizeY / 2), Math.floor(this.gridSizeY / 2)];
-    this.moveIndex;
-    this.sectorWidth = this.hexagonWidth / 4 * 3;
-    this.sectorHeight = this.hexHeight;
-    this.gradient = (this.hexWidth / 4) / (this.hexHeight / 2);
-    this.marker;
-    this.hexGroup;
-    this.scaleFactor = 0.4;
     this.sliderPosition;
-    this.gameTileState = [];
+    this.tileOptions = [];
   }
 
-  drawTiles () {
-    this.hexHeight = this.initialHexHeight * this.scaleFactor;
-    this.hexWidth = this.initialHexWidth * this.scaleFactor;
-    this.hexWidth += (1 * this.scaleFactor);
-    this.firstPosition = {
-      x: (0 + this.hexWidth / 2),
-      y: (0 + this.hexHeight / 3)
-    };
-    if (this.gameTileState.length === 0) {
-      for (let i = 0; i < this.gridSizeY; i++) {
-        for (let j = 0; j < this.gridSizeX; j++) {
-          let xPosition = this.firstPosition.x + (this.hexWidth * j);
-          let yPosition = this.firstPosition.y + (this.hexHeight* i);
-          if (i % 2 == 0) {
-            let tileType = this.tileOptions[Math.floor(Math.random()*(this.tileOptions.length ))];
-            this.gameTileState.push(tileType);
-            let tile = this.game.add.sprite(xPosition, yPosition, tileType);
-            tile.scale.setTo(this.scaleFactor, this.scaleFactor);
-            this.hexGroup.add(tile);
-          } else if (j != 0) {
-            let tileType = this.tileOptions[Math.floor(Math.random()*(this.tileOptions.length ))];
-            this.gameTileState.push(tileType);
-            let tile = this.game.add.sprite(xPosition - (0.5 * this.hexWidth), yPosition, tileType);
-            tile.scale.setTo(this.scaleFactor, this.scaleFactor);
-            this.hexGroup.add(tile);
-          } else {
-            this.gameTileState.push('');
-          }
-        }
+  drawBoard () {
+    this.board.gameTileState.forEach(tile => {
+      if (tile) {
+        let newTile = this.game.add.sprite(tile.x, tile.y, tile.type);
+        newTile.scale.setTo(tile.scale, tile.scale);
+        this.hexGroup.add(newTile);
       }
-    } else {
-      for (let i = 0, counter = 0; i < this.gridSizeY; i++) {
-        for (let j = 0; j < this.gridSizeX; j++, counter++) {
-          let xPosition = this.firstPosition.x + (this.hexWidth * j);
-          let yPosition = this.firstPosition.y + (this.hexHeight* i);
-          if (i % 2 == 0) {
-            let tile = this.game.add.sprite(xPosition, yPosition, this.gameTileState[counter]);
-            tile.scale.setTo(this.scaleFactor, this.scaleFactor);
-            this.hexGroup.add(tile);
-          } else if (j != 0) {
-            let tile = this.game.add.sprite(xPosition - (0.5 * this.hexWidth), yPosition, this.gameTileState[counter]);
-            tile.scale.setTo(this.scaleFactor, this.scaleFactor);
-            this.hexGroup.add(tile);
-          }
-        }
-      }
-    }
-    
+    })
   }
-  
+     
   preload () {
     this.load.image('dirt', 'assets/images/dirt.png');
+    this.tileOptions.push('dirt');
     this.load.image('dirtForest', 'assets/images/dirtForest_1.png');
+    this.tileOptions.push('dirtForest');
     this.load.image('dirtMountain', 'assets/images/dirtMountain_1.png');
+    this.tileOptions.push('dirtMountain');
     this.load.image('grass', 'assets/images/grass.png');
+    this.tileOptions.push('grass');
     this.load.image('grassMountain', 'assets/images/grassMountain_1.png');
+    this.tileOptions.push('grassMountain');
     this.load.image('grassForest', 'assets/images/grassForest_1.png');
+    this.tileOptions.push('grassForest');
     this.load.image('sand', 'assets/images/sand.png');
+    this.tileOptions.push('sand');
     this.load.image('sandForest', 'assets/images/sandForest_1.png');
+    this.tileOptions.push('sandForest');
     this.load.image('sandMountain', 'assets/images/sandMountain_1.png');
+    this.tileOptions.push('sandMountain');
     this.load.image('slider', 'assets/images/mushroom2.png');
   }
 
   create () {
-    this.gameTileState = [];
-    this.tileOptions = ['dirt','sand','grass','dirtMountain', 'sandMountain', 'grassMountain', 'dirtForest', 'sandForest', 'grassForest'];
-    this.hexGroup = this.game.add.group();
-    this.drawTiles();
     this.physics.startSystem(Phaser.Physics.ARCADE);
-
+    this.hexGroup = this.game.add.group();
+    this.board = new Board(this.initHexWidth, this.initHexHeight, this.gridSizeX, this.gridSizeY, this.tileOptions, 1);
+    this.drawBoard();
     this.slider = this.game.add.sprite(this.game.world.width - 50, this.game.world.height / 2, 'slider');
     this.slider.enableBody = true;
     this.slider.inputEnabled = true;
@@ -102,9 +62,11 @@ export default class Main extends Phaser.State {
   update () {
     if (this.slider.y != this.sliderPosition && this.slider.y > (this.game.world.height / 4) && this.slider.y < (this.game.world.height * (3/4))) {
       this.sliderPosition = this.slider.y;
+      let scaleFactor = (this.slider.y) / this.game.world.height;
       this.hexGroup.removeAll();
-      this.scaleFactor = (this.slider.y) / this.game.world.height;
-      this.drawTiles();
+      this.board.reScale(scaleFactor);
+      this.board.generateTiles();
+      this.drawBoard();
     }
   }
 }
